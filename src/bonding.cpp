@@ -481,9 +481,12 @@ double angle_bend_energy(System &system) {
         rik = get_rik(system, rij, rjk, t3, angle); // r_ik (A-C) is computed differently than r_ij (A-B) and r_jk (B-C)
         K_ijk = get_Kijk(system, rik, t1,t2,t3);
         if (K_ijk==0) continue; // skip 0-energy
-
-        potential += K_ijk*(C0 + C1*cos(angle) + C2*cos(2.0*angle)); // in kcal/mol
-        //printf("angle potential of %i %i %i = %f\n", j,l,m,K_ijk*(C0 + C1*cos(angle) + C2*cos(2.0*angle)));
+		double tmp = K_ijk*(C0 + C1*cos(angle) + C2*cos(2.0*angle));
+        if (abs(tmp) > 1e3)
+			printf("angle potential of %i %i %i = %f\n", j,l,m,tmp);
+		else
+			potential += tmp; // in kcal/mol
+        
     }
     potential /= system.constants.kbk; // kcal/mol -> K
     system.stats.Uangles.value = potential;
@@ -743,7 +746,7 @@ double simple_r(double xi, double xj, double yi, double yj, double zi, double zj
 double angle_bend_gradient(System &system) {
 //    const double deg2rad = M_PI/180.0;
     unsigned int i,j,l,m;
-    double rij, rjk, rik, K_ijk, C1, C2;// theta_ijk; // C0; angle-bend params
+    double rij, rjk, rik, K_ijk, C0, C1, C2;// theta_ijk; // C0; angle-bend params
     double angle; // the actual angle IJK
     double grad;
     double xi, yi, zi, xj, yj, zj, xk, yk, zk;
@@ -761,7 +764,8 @@ double angle_bend_gradient(System &system) {
         //theta_ijk = system.constants.uniqueAngles[it].theta_ijk; // in rads
         C2 = system.constants.uniqueAngles[it].C2; // 1/rad^2
         C1 = system.constants.uniqueAngles[it].C1; // 1/rad
-        //C0 = system.constants.uniqueAngles[it].C0; // 1
+		C0 = system.constants.uniqueAngles[it].C0; // 1
+		
         t1 = system.constants.uniqueAngles[it].t1;
         t2 = system.constants.uniqueAngles[it].t2;
         t3 = system.constants.uniqueAngles[it].t3;
@@ -773,6 +777,9 @@ double angle_bend_gradient(System &system) {
         K_ijk = get_Kijk(system, rik, t1,t2,t3);
         if (K_ijk==0) continue; // skip 0-contrib
 
+		if (abs(K_ijk*(C0 + C1*cos(angle) + C2*cos(2.0*angle))) > 1e3)
+			continue;
+		
         // compute the gradient for all angle components (xyz for 3 atoms = 9)
         // gradient is [dE/dx_i...] which ends up as a sum of two cosine derivs (d/dx C0 term -> 0)
 
@@ -1171,6 +1178,7 @@ void findBonds(System &system) {
             for (l=0; l<system.molecules[i].atoms.size(); l++) {
                 if (j==l) continue; // don't do self-atom
                 double* distances = getDistanceXYZ(system, i,j,i,l);
+				string middle_atom = convertElement(system,system.molecules[i].atoms[l].name.c_str());
                 r = distances[3];
 
                 if (qualify_bond(system, r, i, j, l)) {
@@ -1200,6 +1208,7 @@ void findBonds(System &system) {
                     }
 
                     // now loop for angles
+					if (middle_atom == "H") continue; 
                     for (m=0; m<system.molecules[i].atoms.size(); m++) {
                         if (j==m) continue; // don't do ABA angles (0 degrees)
                         if (l==m) continue; // don't do ABB angles (0 degrees)
