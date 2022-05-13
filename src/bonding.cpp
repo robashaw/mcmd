@@ -284,6 +284,8 @@ string getUFFlabel(System &system, string name, int num_bonds, int mol, int i) {
         return "Cd1f1";
     } else if (name == "Si") {
         return "SiF6"; // default sifsix Si
+    } else if (name == "Fe") {
+    	return "Fe4+2"; 
     }
     printf("ERROR: ATOM UFF TYPE NOT FOUND FOR label '%s'.\n",name.c_str());
     printf("Number of bonds = %i\n", num_bonds);

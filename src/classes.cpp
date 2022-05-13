@@ -2199,6 +2199,7 @@ Constants::Constants() {
     UFF_bonds["Mn4+2"] = 1.26;
     UFF_bonds["Fe6+3"] = 1.32;
     UFF_bonds["Fe4+2"] = 1.1;
+	UFF_bonds["Fe4+4"] = 1.2;
     UFF_bonds["Co3+2"] = 1.24;
     UFF_bonds["Co4+2"] = 1.16;
     UFF_bonds["Cu4+2"] = 1.28;
@@ -2219,6 +2220,7 @@ Constants::Constants() {
     UFF_angles["Mn4+2"] = 90;
     UFF_angles["Fe6+3"] = 90;
     UFF_angles["Fe4+2"] = 90;
+	UFF_angles["Fe4+4"] = 90;
     UFF_angles["Co3+2"] = 109.47;
     UFF_angles["Co4+2"] = 90;
     UFF_angles["Cu4+2"] = 90;
@@ -2240,6 +2242,7 @@ Constants::Constants() {
     UFF_Z["Mn4+2"] = 2.43;
     UFF_Z["Fe6+3"] = 2.43;
     UFF_Z["Fe4+2"] = 2.43;
+	UFF_Z["Fe4+4"] = 2.43; 
     UFF_Z["Co3+2"] = 1.308;
     UFF_Z["Co4+2"] = 1.308;
     UFF_Z["Cu4+2"] = 2.43;
