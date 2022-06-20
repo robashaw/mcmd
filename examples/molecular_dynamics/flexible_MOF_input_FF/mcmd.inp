@@ -40,5 +40,3 @@ md_corrtime       1    ! steps
 md_mode             molecular          
 md_rotations        on    
 
-
-omp 4

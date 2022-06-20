@@ -133,6 +133,8 @@ void readInAtoms(System &system, string filename) {
             Molecule whatev;
             system.proto.push_back(whatev); // the first prototype.
             Molecule current_molecule; // initializer. Will be overwritten
+			vector<pair<int, int>> connections; 
+			
             // loop through each line
             while ( getline (myfile,line) )
             {
@@ -154,6 +156,8 @@ void readInAtoms(System &system, string filename) {
 
                 // skip blank lines
                 if (myvector.size() != 0) {
+					if (myvector[0] == "CONECT") 
+						connections.push_back({std::stoi(myvector[1]), std::stoi(myvector[2])});
                     if (myvector[0] != "ATOM") continue; // skip anything in file that isn't an atom
                     if (myvector[2] == "X" && myvector[3] == "BOX") continue; // skip box vertices
 
@@ -241,7 +245,21 @@ void readInAtoms(System &system, string filename) {
                 } // end if vector size nonzero
             }
             myfile.close();
-
+			if (!system.constants.dynamic_bonds) {
+				system.has_bond.resize(system.constants.total_atoms); 
+				for (auto& hb : system.has_bond) {
+					hb.resize(system.constants.total_atoms);
+					std::fill(hb.begin(), hb.end(), false); 
+				}
+				for (auto& pair : connections) {
+					if ((pair.first > system.constants.total_atoms) || (pair.second > system.constants.total_atoms)) {
+						std::cout << "Invalid connection: " << pair.first << ", " << pair.second << std::endl;
+					} else {
+						system.has_bond[pair.first-1][pair.second-1] = true;
+						system.has_bond[pair.second-1][pair.first-1] = true;
+					}
+				}
+			}
 
         }
         else {
@@ -250,6 +268,7 @@ void readInAtoms(System &system, string filename) {
             printf("ERROR: Unable to open %s. Exiting.\n",filename.c_str());
             std::exit(0);
         }
+		
     } // end PDB readin
 }
 
@@ -1831,7 +1850,12 @@ void readInput(System &system, char* filename) {
             std::cout << "Got charge sum check option = " << lc[1].c_str();
             printf("\n");
 
-        } else if (!strcasecmp(lc[0].c_str(), "bondlength")) {
+        } else if (!strcasecmp(lc[0].c_str(), "dynamic_bonds")) {
+            if (!strcasecmp(lc[1].c_str(),"off"))
+                system.constants.dynamic_bonds = false;
+            std::cout << "Got dynamic-bonds option = " << lc[1].c_str();
+            printf("\n");
+		} else if (!strcasecmp(lc[0].c_str(), "bondlength")) {
             system.constants.bondlength = atof(lc[1].c_str());
             std::cout << "Got max-bondlength parameter (for dynamic bond detection) = " << lc[1].c_str() << " A.";
             printf("\n");

@@ -298,33 +298,39 @@ string getUFFlabel(System &system, string name, int num_bonds, int mol, int i) {
 
 // return true if this should count as a bond.
 bool qualify_bond(System &system, double r, unsigned int mol, unsigned int i, unsigned int j) {
-    string a1 = convertElement(system,system.molecules[mol].atoms[i].name.c_str());
-    string a2 = convertElement(system,system.molecules[mol].atoms[j].name.c_str());
-
-    double bondlength = system.constants.bondlength;
-
-    if (a1=="H" && a2=="H" && system.molecules[mol].atoms.size() != 2)
-        return false;
-    else if ((a1=="H" || a2=="H") && r > 1.3)
-        return false;
-    else if ((a1=="Zn" || a2=="Zn") && r <= 2.1) // Zn4O group
-        return true;
-    else if ((a1=="Cu" || a2=="Cu") && r <= 2.1) // Cu paddlewheel - O
-        return true;
-    else if ((a1=="Cu" && a2=="Cu") && r <= 2.9) // Cu paddlewheel
-        return true;
-    else if ((a1=="Ru" || a2=="Ru") && r <= 2.1) // Ru +2  complexes
-        return true;
-    else if ((a1=="Co" || a2=="Co") && r <= 2.25) // Co complexes
-        return true;
-    else if ((a1=="Ni" || a2=="Ni") && r <= 2.3) // Ni complexes, e.g. SIFSIX-Ni
-        return true;
-    else if (((a1=="Cd" && a2=="F") || (a1=="F" && a2=="Cd")) && r <= 2.4) // Cd SIFSIX type
-        return true;
-    else if (r > bondlength)
-        return false;
-
-    else return true;
+    if (system.constants.dynamic_bonds) {
+		string a1 = convertElement(system,system.molecules[mol].atoms[i].name.c_str());
+    	string a2 = convertElement(system,system.molecules[mol].atoms[j].name.c_str());
+    	
+    	double bondlength = system.constants.bondlength;
+		double radius1 = system.constants.radii[a1];
+		double radius2 = system.constants.radii[a2];
+		bondlength = std::min(bondlength, 1.6*(radius1 + radius2));
+    	
+    	if (a1=="H" && a2=="H" && system.molecules[mol].atoms.size() != 2)
+    	    return false;
+    	else if ((a1=="H" || a2=="H") && r > 1.3)
+    	    return false;
+    	else if ((a1=="Zn" || a2=="Zn") && r <= 2.1) // Zn4O group
+    	    return true;
+    	else if ((a1=="Cu" || a2=="Cu") && r <= 2.1) // Cu paddlewheel - O
+        	return true;
+    	else if ((a1=="Cu" && a2=="Cu") && r <= 2.9) // Cu paddlewheel
+    	    return true;
+    	else if ((a1=="Ru" || a2=="Ru") && r <= 2.1) // Ru +2  complexes
+    	    return true;
+    	else if ((a1=="Co" || a2=="Co") && r <= 2.25) // Co complexes
+    	    return true;
+    	else if ((a1=="Ni" || a2=="Ni") && r <= 2.3) // Ni complexes, e.g. SIFSIX-Ni
+    	    return true;
+    	else if (((a1=="Cd" && a2=="F") || (a1=="F" && a2=="Cd")) && r <= 2.4) // Cd SIFSIX type
+    	    return true;
+    	else if (r > bondlength)
+    	    return false;
+    	else return true;
+	} else {
+		return system.has_bond[i][j]; 
+	} 
 }
 
 /*
